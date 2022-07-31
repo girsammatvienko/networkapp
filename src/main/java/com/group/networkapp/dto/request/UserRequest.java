@@ -1,4 +1,4 @@
-package com.group.networkapp.dto;
+package com.group.networkapp.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserDto {
+public class UserRequest {
     private String firstName;
     private String lastName;
     private String email;
+    private String password;
 }

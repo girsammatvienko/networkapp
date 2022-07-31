@@ -1,4 +1,4 @@
-package com.group.networkapp.security.impl;
+package com.group.networkapp.service.impl;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -12,17 +12,19 @@ import com.group.networkapp.domain.entity.Role;
 import com.group.networkapp.domain.exception.InvalidEmailException;
 import com.group.networkapp.domain.exception.NetworkAppException;
 import com.group.networkapp.domain.exception.UserAlreadyExistsException;
+import com.group.networkapp.domain.exception.UserNotFoundException;
 import com.group.networkapp.dto.UserDto;
+import com.group.networkapp.dto.request.UserRequest;
 import com.group.networkapp.repository.RoleRepository;
 import com.group.networkapp.repository.UserRepository;
-import com.group.networkapp.security.UserService;
+import com.group.networkapp.service.UserService;
 import com.group.networkapp.utils.EmailValidator;
-import com.group.networkapp.utils.UserMapper;
+import com.group.networkapp.utils.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,6 +49,12 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final JwtTokenProvider jwtTokenProvider;
+
+    public NetworkUser getCurrentUser() {
+        String currentUsername = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userRepository.findByEmail(currentUsername)
+                .orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+    }
 
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
@@ -82,25 +90,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto registerNewUser(UserDto userDto) throws UserAlreadyExistsException {
-        if(isEmailTaken(userDto.getEmail()))
+    public UserDto registerNewUser(UserRequest userRequest) throws UserAlreadyExistsException {
+        if(isEmailTaken(userRequest.getEmail()))
             throw new UserAlreadyExistsException("User with such email already exists", HttpStatus.INTERNAL_SERVER_ERROR);
 
-        if(!EmailValidator.isValid(userDto.getEmail()))
+        if(!EmailValidator.isValid(userRequest.getEmail()))
             throw new InvalidEmailException("Invalid email", HttpStatus.INTERNAL_SERVER_ERROR);
 
         Role role = roleRepository.findByName(RoleEnum.ROLE_USER) == null? roleRepository.save(new Role(RoleEnum.ROLE_USER)): roleRepository.findByName(RoleEnum.ROLE_USER);
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
         var newUser = NetworkUser.builder()
-                .firstName(userDto.getFirstName())
-                .lastName(userDto.getLastName())
-                .email(userDto.getEmail())
-                .password(passwordEncoder.encode(userDto.getPassword()))
+                .firstName(userRequest.getFirstName())
+                .lastName(userRequest.getLastName())
+                .email(userRequest.getEmail())
+                .password(passwordEncoder.encode(userRequest.getPassword()))
                 .roles(Set.of(role))
                 .build();
 
-        return userMapper.entityToDto(userRepository.save(newUser));
+        return userMapper.toDto(userRepository.save(newUser));
     }
 
     private boolean isEmailTaken(String email) {return userRepository.findByEmail(email).isPresent();}

@@ -1,6 +1,6 @@
 package com.group.networkapp.controller;
 
-import com.group.networkapp.security.UserService;
+import com.group.networkapp.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

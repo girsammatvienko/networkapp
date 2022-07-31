@@ -1,7 +1,8 @@
 package com.group.networkapp.controller;
 
 import com.group.networkapp.dto.UserDto;
-import com.group.networkapp.security.UserService;
+import com.group.networkapp.dto.request.UserRequest;
+import com.group.networkapp.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,13 +19,8 @@ public class RegistrationController {
 
     private final UserService userService;
 
-    @GetMapping("/get")
-    public void post() {
-        System.out.println("get");
-    }
-
     @PostMapping("/user")
-    public UserDto registerUser(@RequestBody @Valid UserDto userDto) {
-        return userService.registerNewUser(userDto);
+    public UserDto registerUser(@RequestBody @Valid UserRequest userRequest) {
+        return userService.registerNewUser(userRequest);
     }
 }
