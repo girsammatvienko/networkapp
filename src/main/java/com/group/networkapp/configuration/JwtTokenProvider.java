@@ -27,7 +27,7 @@ public class JwtTokenProvider {
     public String generateRefreshToken(User user, HttpServletRequest request) {
         return JWT.create()
                 .withSubject(user.getUsername())
-                .withExpiresAt(Instant.ofEpochSecond(jwtExpirationInMs))
+                .withExpiresAt(new Date(System.currentTimeMillis() + 60 * 60 * 1000))
                 .withIssuer(request.getRequestURL().toString())
                 .sign(algorithm);
     }
