@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+		http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+		http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+		http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+    <changeSet id="12345" author="Hirsam Matvienko">
+        <sql>USE networkappdb;</sql>
+        <sql>DROP TABLE IF EXISTS `comment`;</sql>
+        <sql>DROP TABLE IF EXISTS `post`;</sql>
+        <sql>DROP TABLE IF EXISTS `role`;</sql>
+        <sql>DROP TABLE IF EXISTS `user`;</sql>
+        <sql>DROP TABLE IF EXISTS `user_roles`;</sql>
+        <sql>
+            CREATE TABLE `user`
+            (
+                `id`         bigint NOT NULL AUTO_INCREMENT,
+                `email`      varchar(255) DEFAULT NULL,
+                `first_name` varchar(255) DEFAULT NULL,
+                `last_name`  varchar(255) DEFAULT NULL,
+                `password`   varchar(255) DEFAULT NULL,
+                PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB;
+
+            CREATE TABLE `role`
+            (
+                `id`   bigint NOT NULL AUTO_INCREMENT,
+                `name` int DEFAULT NULL,
+                PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB;
+
+            CREATE TABLE `post`
+            (
+                `id`      bigint NOT NULL AUTO_INCREMENT,
+                `text`    varchar(255) DEFAULT NULL,
+                `title`   varchar(255) DEFAULT NULL,
+                `user_id` bigint       DEFAULT NULL,
+                PRIMARY KEY (`id`),
+                KEY (`user_id`),
+                CONSTRAINT FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+            ) ENGINE=InnoDB;
+
+            CREATE TABLE `comment`
+            (
+                `id`      bigint NOT NULL AUTO_INCREMENT,
+                `text`    varchar(255) DEFAULT NULL,
+                `post_id` bigint       DEFAULT NULL,
+                `user_id` bigint       DEFAULT NULL,
+                PRIMARY KEY (`id`),
+                KEY (`post_id`),
+                KEY (`user_id`),
+                CONSTRAINT FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
+                CONSTRAINT FOREIGN KEY (`post_id`) REFERENCES `post` (`id`)
+            ) ENGINE=InnoDB;
+
+            CREATE TABLE `user_roles`
+            (
+                `network_user_id` bigint NOT NULL,
+                `roles_id`        bigint NOT NULL,
+                PRIMARY KEY (`network_user_id`, `roles_id`),
+                KEY (`roles_id`),
+                CONSTRAINT FOREIGN KEY (`network_user_id`) REFERENCES `user` (`id`),
+                CONSTRAINT FOREIGN KEY (`roles_id`) REFERENCES `role` (`id`)
+            ) ENGINE=InnoDB;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

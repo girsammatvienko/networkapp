@@ -10,9 +10,12 @@ import com.group.networkapp.dto.response.SignInResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 public interface UserService {
     UserDto registerNewUser(UserRequest userRequest) throws UserAlreadyExistsException;
+
+    List<UserDto> getAllUsers();
 
     NetworkUser getCurrentUser();
 

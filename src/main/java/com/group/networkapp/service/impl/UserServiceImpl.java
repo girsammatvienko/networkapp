@@ -34,8 +34,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -50,12 +52,14 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final JwtTokenProvider jwtTokenProvider;
 
+    @Override
     public NetworkUser getCurrentUser() {
         String currentUsername = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return userRepository.findByEmail(currentUsername)
                 .orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
     }
 
+    @Override
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
@@ -98,7 +102,6 @@ public class UserServiceImpl implements UserService {
             throw new InvalidEmailException("Invalid email", HttpStatus.INTERNAL_SERVER_ERROR);
 
         Role role = roleRepository.findByName(RoleEnum.ROLE_USER) == null? roleRepository.save(new Role(RoleEnum.ROLE_USER)): roleRepository.findByName(RoleEnum.ROLE_USER);
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
         var newUser = NetworkUser.builder()
                 .firstName(userRequest.getFirstName())
@@ -109,6 +112,17 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         return userMapper.toDto(userRepository.save(newUser));
+    }
+
+    @Override
+    public List<UserDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(user -> UserDto.builder()
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .email(user.getEmail())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private boolean isEmailTaken(String email) {return userRepository.findByEmail(email).isPresent();}
